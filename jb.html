@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en" manifest="cache.appcache">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RogueByte - Jailbreak Execution</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-dark: #04060c;
+      --card-bg: rgba(10, 16, 30, 0.75);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
+      --purple: #9d4edd;
+      --purple-glow: rgba(157, 78, 221, 0.35);
+      --emerald: #00ffa3;
+      --emerald-glow: rgba(0, 255, 163, 0.35);
+      --ruby: #ff3366;
+      --ruby-glow: rgba(255, 51, 102, 0.35);
+      --amber: #ffb703;
+      --amber-glow: rgba(255, 183, 3, 0.35);
+      --text-primary: #f0f4fc;
+      --text-secondary: #8896ab;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-dark);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(157, 78, 221, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 163, 0.04) 0%, transparent 55%);
+      color: var(--text-primary);
+      font: 15px/1.5 "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Scanline pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background:
+        linear-gradient(rgba(18, 24, 40, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.015), rgba(0, 0, 0, 0.01) 3px, transparent 3px);
+      background-size: 100% 4px, 60px 100%;
+    }
+
+    /* Ambient floating glow */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+    .orb-1 {
+      width: 380px; height: 380px;
+      background: radial-gradient(circle, var(--cyan-glow), transparent 70%);
+      top: -80px; left: -80px;
+    }
+    .orb-2 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, var(--purple-glow), transparent 70%);
+      bottom: -100px; right: -100px;
+    }
+
+    /* Header Branding */
+    #brand {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 16px 24px;
+      background: rgba(8, 12, 22, 0.85);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    #brand::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+
+    #brand .logo-wrap {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      box-shadow: 0 0 15px var(--cyan-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #brand img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      background: #090d16;
+    }
+
+    #brand .brand-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    #brand b {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
+    #brand .tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+
+    #brand .tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--emerald);
+      display: inline-block;
+      animation: blink 1.6s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Running State Container */
+    #loader-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Cyber Futuristic Spinner (#spin) */
+    #spin {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 240, 255, 0.15);
+      border-top-color: var(--cyan);
+      border-right-color: var(--cyan);
+      box-shadow: 0 0 25px var(--cyan-glow);
+      animation: spinOuter 1.1s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+
+    #spin::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 3px solid rgba(157, 78, 221, 0.2);
+      border-bottom-color: var(--purple);
+      border-left-color: var(--purple);
+      box-shadow: 0 0 20px var(--purple-glow);
+      animation: spinInner 0.8s linear infinite reverse;
+    }
+
+    #spin::after {
+      content: '';
+      position: absolute;
+      inset: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff, var(--cyan));
+      box-shadow: 0 0 16px var(--cyan);
+      animation: corePulse 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes spinOuter {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinInner {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes corePulse {
+      0% { transform: scale(0.7); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* Loader Status Label */
+    .loader-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .loader-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #ffffff, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .loader-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+    }
+
+    /* Error / Fail Message (#msg) */
+    #msg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      display: none;
+      width: 90%;
+      max-width: 480px;
+      background: rgba(16, 10, 20, 0.9);
+      border: 1px solid rgba(255, 51, 102, 0.4);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8), 0 0 35px var(--ruby-glow);
+      padding: 36px 30px;
+      text-align: center;
+      animation: alertPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes alertPop {
+      from { transform: translate(-50%, -46%) scale(0.92); opacity: 0; }
+      to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .msg-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(255, 51, 102, 0.15);
+      border: 2px solid var(--ruby);
+      box-shadow: 0 0 20px var(--ruby-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ruby);
+    }
+
+    .msg-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+
+    .msg-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-shadow: 0 0 15px var(--ruby-glow);
+    }
+
+    .msg-desc {
+      font-size: 14px;
+      color: #b0bcd0;
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .msg-hint {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--amber);
+      background: rgba(255, 183, 3, 0.1);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
+
+    /* Success Card (shown when body.done) */
+    #done-msg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      display: none;
+      width: 90%;
+      max-width: 480px;
+      background: rgba(8, 22, 20, 0.9);
+      border: 1px solid rgba(0, 255, 163, 0.4);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8), 0 0 35px var(--emerald-glow);
+      padding: 36px 30px;
+      text-align: center;
+      animation: alertPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .done-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(0, 255, 163, 0.15);
+      border: 2px solid var(--emerald);
+      box-shadow: 0 0 20px var(--emerald-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald);
+    }
+
+    .done-icon svg {
+      width: 30px;
+      height: 30px;
+      fill: currentColor;
+    }
+
+    .done-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-shadow: 0 0 15px var(--emerald-glow);
+    }
+
+    .done-desc {
+      font-size: 14px;
+      color: #b0bcd0;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .done-btn {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #04060c;
+      background: var(--emerald);
+      padding: 10px 24px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px var(--emerald-glow);
+      text-transform: uppercase;
+    }
+
+    /* Logging Mode (?log=1) */
+    #wrap {
+      display: none;
+      position: relative;
+      z-index: 10;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    #state {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan-glow);
+      text-transform: uppercase;
+    }
+
+    .terminal-box {
+      background: rgba(6, 9, 16, 0.95);
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(14, 20, 36, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    #out {
+      white-space: pre-wrap;
+      font: 12px/1.6 Consolas, "Fira Code", monospace;
+      padding: 16px 18px;
+      height: calc(100vh - 190px);
+      overflow-y: auto;
+      color: #9bb0cb;
+    }
+
+    /* Custom Terminal Scrollbar */
+    #out::-webkit-scrollbar {
+      width: 8px;
+    }
+    #out::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    #out::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.25);
+      border-radius: 4px;
+    }
+    #out::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.5);
+    }
+
+    /* Tag styles */
+    .ok { color: var(--emerald); text-shadow: 0 0 8px var(--emerald-glow); font-weight: 700; }
+    .bad { color: var(--ruby); text-shadow: 0 0 8px var(--ruby-glow); font-weight: 700; }
+    .warn { color: var(--amber); text-shadow: 0 0 8px var(--amber-glow); font-weight: 700; }
+    .safe { color: var(--emerald); }
+    .danger { color: var(--ruby); }
+    code { color: var(--cyan); }
+
+    /* Body State Control by jb.js */
+    body.done #loader-container { display: none; }
+    body.done #done-msg { display: block; }
+
+    body.fail #loader-container { display: none; }
+    body.fail #msg { display: block; }
+
+    body.log #loader-container,
+    body.log #msg,
+    body.log #done-msg {
+      display: none;
+    }
+    body.log #wrap {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <header id="brand">
+    <div class="logo-wrap">
+      <img src="logo_RogueByte.png" alt="RogueByte" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'46\' fill=\'%230a101e\' stroke=\'%2300f0ff\' stroke-width=\'4\'/%3E%3Cpath d=\'M30 35 L70 35 L70 50 L45 50 L68 75 L50 75 L30 54 Z\' fill=\'%2300f0ff\'/%3E%3C/svg%3E';">
+    </div>
+    <div class="brand-text">
+      <b>RogueByte</b>
+      <span class="tag">Jailbreak Engine</span>
+    </div>
+  </header>
+
+  <!-- Running State: Dual Ring Spinner -->
+  <div id="loader-container">
+    <div id="spin"></div>
+    <div class="loader-label">
+      <div class="loader-title">Executing Jailbreak</div>
+      <div class="loader-sub">Triggering kernel exploit &bull; Please keep browser open</div>
+    </div>
+  </div>
+
+  <!-- Failure State -->
+  <div id="msg">
+    <div class="msg-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    </div>
+    <div class="msg-title">Restart Your Console</div>
+    <div class="msg-desc">The exploit encountered memory instability or a timeout. Please power off or restart your PlayStation 4 and reopen this host.</div>
+    <span class="msg-hint">Hold PS Button &rarr; Power Options &rarr; Restart PS4</span>
+  </div>
+
+  <!-- Success State -->
+  <div id="done-msg">
+    <div class="done-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <div class="done-title">Jailbreak Successful!</div>
+    <div class="done-desc">Kernel privileges acquired and payload successfully injected into memory. You can now safely exit the browser.</div>
+    <div class="done-btn">Press PS Button to Exit</div>
+  </div>
+
+  <!-- Log View (?log=1) -->
+  <div id="wrap">
+    <div id="state">System Ready</div>
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <div class="terminal-title">Kernel Exploit Diagnostics</div>
+      </div>
+      <div id="out"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "./jb.js?v=10";
+  </script>
+</body>
+</html>
