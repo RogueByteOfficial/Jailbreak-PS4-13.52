@@ -16,6 +16,7 @@ def build_appcache():
     files_to_cache = [
         "index.html",
         "jb.html",
+        "sender.html",
         "logo_RogueByte.png",
         "jb.js",
         "core.js",
@@ -70,6 +71,7 @@ def build_appcache():
         "FALLBACK:",
         "index.html index.html",
         "jb.html jb.html",
+        "sender.html sender.html",
         ""
     ])
     

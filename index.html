@@ -127,6 +127,38 @@
             text-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
         }
 
+        #sender-link {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            background: rgba(0, 229, 255, 0.08);
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+        }
+
+        #sender-link:hover {
+            background: rgba(0, 229, 255, 0.25);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+            color: #fff;
+        }
+
+        @media (max-width: 650px) {
+            #sender-link {
+                position: static;
+                display: inline-block;
+                margin-top: 10px;
+                transform: none;
+            }
+        }
+
         #wrap {
             position: relative;
             z-index: 2;
@@ -223,6 +255,7 @@
             height="38"
         >
         <b>RogueByteV1.0</b>
+        <a href="sender.html" id="sender-link" title="Web BinLoader Payload Sender">Payload Sender &rarr;</a>
     </div>
 
     <div id="wrap">

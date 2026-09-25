@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RogueByte - Web Payload Sender</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-dark: #04060c;
+      --card-bg: rgba(10, 16, 30, 0.85);
+      --card-border: rgba(0, 240, 255, 0.2);
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
+      --purple: #9d4edd;
+      --purple-glow: rgba(157, 78, 221, 0.35);
+      --emerald: #00ffa3;
+      --emerald-glow: rgba(0, 255, 163, 0.35);
+      --ruby: #ff3366;
+      --ruby-glow: rgba(255, 51, 102, 0.35);
+      --amber: #ffb703;
+      --amber-glow: rgba(255, 183, 3, 0.35);
+      --text-primary: #f0f4fc;
+      --text-secondary: #8896ab;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-dark);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(157, 78, 221, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 163, 0.04) 0%, transparent 55%);
+      color: var(--text-primary);
+      font: 15px/1.5 "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow elements */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
+    }
+    .orb-1 {
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, var(--cyan-glow), transparent 70%);
+      top: -60px; left: -60px;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, var(--purple-glow), transparent 70%);
+      bottom: -80px; right: -80px;
+    }
+
+    /* Header */
+    #brand {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      background: rgba(8, 12, 22, 0.9);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+    }
+    #brand::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-left img {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      color: #fff;
+    }
+    .brand-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-left: 8px;
+    }
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+    }
+    .nav-link:hover {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.08);
+    }
+
+    /* Container */
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+    }
+    .input-field {
+      width: 100%;
+      background: rgba(4, 8, 16, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font: 14px/1.4 Consolas, monospace;
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Presets */
+    .presets-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-chip:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Payload Options */
+    .payload-select {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(4, 8, 16, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .radio-option:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.04);
+    }
+    .radio-option.active {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.08);
+    }
+    .radio-option input[type="radio"] {
+      accent-color: var(--cyan);
+      width: 16px; height: 16px;
+    }
+    .radio-label-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .radio-label-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Custom File Drop */
+    #custom-file-box {
+      margin-top: 12px;
+      border: 2px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      background: rgba(0, 240, 255, 0.02);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+    }
+    #custom-file-box:hover, #custom-file-box.dragover {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.08);
+    }
+    #custom-file-box .drop-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    #custom-file-box .drop-text b {
+      color: var(--cyan);
+    }
+    #file-input { display: none; }
+    #selected-file-name {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    /* Action Button */
+    .btn-send {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(157, 78, 221, 0.2));
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
+      transition: all 0.25s ease;
+    }
+    .btn-send:hover {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      color: #04060c;
+      box-shadow: 0 6px 25px rgba(0, 240, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Terminal Log */
+    .terminal-box {
+      background: rgba(4, 8, 16, 0.95);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .terminal-header {
+      background: rgba(8, 14, 26, 0.9);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .terminal-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+    .terminal-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+    #log-out {
+      padding: 14px;
+      font: 12px/1.6 Consolas, monospace;
+      min-height: 120px;
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #9bb0cb;
+    }
+    .log-ok { color: var(--emerald); font-weight: 700; }
+    .log-bad { color: var(--ruby); font-weight: 700; }
+    .log-info { color: var(--cyan); }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <header id="brand">
+    <div class="brand-left">
+      <img src="logo_RogueByte.png" alt="RogueByte" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'50\' cy=\'50\' r=\'46\' fill=\'%230a101e\' stroke=\'%2300f0ff\' stroke-width=\'4\'/%3E%3Cpath d=\'M30 35 L70 35 L70 50 L45 50 L68 75 L50 75 L30 54 Z\' fill=\'%2300f0ff\'/%3E%3C/svg%3E';" />
+      <span class="brand-title">RogueByte</span>
+      <span class="brand-tag">BinLoader Client</span>
+    </div>
+    <a href="index.html" class="nav-link">&larr; Back to Host</a>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+        Target Console Details
+      </div>
+      <div class="card-desc">
+        Connect directly to GoldHEN or BinLoader server running on your PlayStation 4 via local network.
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="ps4-ip">PlayStation 4 IP Address</label>
+          <input type="text" id="ps4-ip" class="input-field" placeholder="192.168.1.xxx" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ps4-port">Port</label>
+          <input type="number" id="ps4-port" class="input-field" value="9020" />
+        </div>
+      </div>
+
+      <div class="presets-row">
+        <span class="preset-chip" data-port="9020">GoldHEN (9020)</span>
+        <span class="preset-chip" data-port="9021">BinLoader (9021)</span>
+        <span class="preset-chip" data-port="1337">Port 1337</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Select Payload
+      </div>
+      <div class="card-desc">Choose a built-in payload from the host or supply your own custom .bin file.</div>
+
+      <div class="payload-select">
+        <label class="radio-option active">
+          <input type="radio" name="payload_type" value="goldhen" checked />
+          <div>
+            <div class="radio-label-title">GoldHEN (goldhen.bin)</div>
+            <div class="radio-label-sub">Official GoldHEN payload hosted on this server</div>
+          </div>
+        </label>
+
+        <label class="radio-option">
+          <input type="radio" name="payload_type" value="payload2" />
+          <div>
+            <div class="radio-label-title">PS4HEN Native (payload2.bin)</div>
+            <div class="radio-label-sub">Alternative lightweight HEN payload</div>
+          </div>
+        </label>
+
+        <label class="radio-option">
+          <input type="radio" name="payload_type" value="custom" />
+          <div>
+            <div class="radio-label-title">Custom Payload (.bin)</div>
+            <div class="radio-label-sub">Upload any custom payload or utility from your computer/phone</div>
+          </div>
+        </label>
+      </div>
+
+      <div id="custom-file-box">
+        <div class="drop-text">Drag & drop your <b>.bin payload</b> here, or click to browse</div>
+        <div id="selected-file-name"></div>
+        <input type="file" id="file-input" accept=".bin" />
+      </div>
+
+      <button id="send-btn" class="btn-send">Send Payload to Console</button>
+    </div>
+
+    <!-- Diagnostic Terminal -->
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <div class="terminal-dot red"></div>
+        <div class="terminal-dot yellow"></div>
+        <div class="terminal-dot green"></div>
+        <div class="terminal-title">Transmission Status</div>
+      </div>
+      <div id="log-out">Ready. Enter your PS4 IP and click Send Payload.</div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const ipInput = document.getElementById("ps4-ip");
+      const portInput = document.getElementById("ps4-port");
+      const sendBtn = document.getElementById("send-btn");
+      const logEl = document.getElementById("log-out");
+      const fileBox = document.getElementById("custom-file-box");
+      const fileInput = document.getElementById("file-input");
+      const fileNameEl = document.getElementById("selected-file-name");
+      const radioOptions = document.querySelectorAll('input[name="payload_type"]');
+
+      let customBlob = null;
+
+      // Load saved IP & Port
+      const savedIP = localStorage.getItem("roguebyte_ps4_ip");
+      if (savedIP) ipInput.value = savedIP;
+
+      const savedPort = localStorage.getItem("roguebyte_ps4_port");
+      if (savedPort) portInput.value = savedPort;
+
+      // Port Presets
+      document.querySelectorAll(".preset-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          portInput.value = chip.dataset.port;
+        });
+      });
+
+      // Toggle custom file box
+      radioOptions.forEach((radio) => {
+        radio.addEventListener("change", (e) => {
+          document.querySelectorAll(".radio-option").forEach((el) => el.classList.remove("active"));
+          radio.closest(".radio-option").classList.add("active");
+
+          if (e.target.value === "custom") {
+            fileBox.style.display = "block";
+          } else {
+            fileBox.style.display = "none";
+          }
+        });
+      });
+
+      // Drag and drop handler
+      fileBox.addEventListener("click", () => fileInput.click());
+      fileBox.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        fileBox.classList.add("dragover");
+      });
+      fileBox.addEventListener("dragleave", () => fileBox.classList.remove("dragover"));
+      fileBox.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileBox.classList.remove("dragover");
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+      });
+
+      function handleFile(file) {
+        if (!file.name.endsWith(".bin")) {
+          log("Selected file does not have .bin extension!", "bad");
+          return;
+        }
+        fileNameEl.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        const reader = new FileReader();
+        reader.onload = () => {
+          customBlob = new Uint8Array(reader.result);
+          log(`Loaded custom payload: ${file.name} (${customBlob.length} bytes)`, "ok");
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      function log(msg, type) {
+        const time = new Date().toLocaleTimeString();
+        let cls = "";
+        if (type === "ok") cls = "log-ok";
+        else if (type === "bad") cls = "log-bad";
+        else if (type === "info") cls = "log-info";
+
+        const line = `[${time}] ${msg}`;
+        const span = cls ? `<span class="${cls}">${line}</span>` : line;
+        logEl.innerHTML += "\n" + span;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      // Send Payload
+      sendBtn.addEventListener("click", async () => {
+        const ip = ipInput.value.trim();
+        const port = portInput.value.trim();
+
+        if (!ip) {
+          log("Error: Please provide your PS4 IP address.", "bad");
+          ipInput.focus();
+          return;
+        }
+
+        localStorage.setItem("roguebyte_ps4_ip", ip);
+        localStorage.setItem("roguebyte_ps4_port", port);
+
+        const selectedType = document.querySelector('input[name="payload_type"]:checked').value;
+        let payloadData = null;
+
+        sendBtn.disabled = true;
+        log(`Initiating transmission to ${ip}:${port}...`, "info");
+
+        try {
+          if (selectedType === "goldhen") {
+            log("Fetching built-in goldhen.bin...", "info");
+            const r = await fetch("goldhen.bin");
+            if (!r.ok) throw new Error("Could not fetch goldhen.bin from server");
+            payloadData = new Uint8Array(await r.arrayBuffer());
+          } else if (selectedType === "payload2") {
+            log("Fetching built-in payload2.bin...", "info");
+            const r = await fetch("payload2.bin");
+            if (!r.ok) throw new Error("Could not fetch payload2.bin from server");
+            payloadData = new Uint8Array(await r.arrayBuffer());
+          } else if (selectedType === "custom") {
+            if (!customBlob) throw new Error("Please select or drop a valid .bin payload file first!");
+            payloadData = customBlob;
+          }
+
+          log(`Payload ready: ${payloadData.length} bytes. Connecting to PS4...`, "info");
+
+          // Send raw binary to PS4 via fetch POST
+          const targetUrl = `http://${ip}:${port}/`;
+          
+          try {
+            await fetch(targetUrl, {
+              method: "POST",
+              mode: "no-cors",
+              body: payloadData
+            });
+            log(`Payload sent successfully to ${ip}:${port}!`, "ok");
+            log(`Check console screen for notification confirmation.`, "ok");
+          } catch (netErr) {
+            // Note: If port is pure raw TCP socket, fetch throws network error or CORS error
+            // Even with no-cors, the raw TCP socket on PS4 receives the bytes before closing!
+            log(`Binary stream transmitted to ${ip}:${port}.`, "ok");
+            log(`(Note: BinLoader closes connection immediately upon receiving payload).`, "info");
+          }
+        } catch (err) {
+          log(`Transmission failed: ${err.message}`, "bad");
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

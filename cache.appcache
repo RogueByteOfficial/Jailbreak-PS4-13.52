@@ -1,8 +1,9 @@
 CACHE MANIFEST
-# rev 20260924-1354-roguebyte-goldhen
+# rev 20260925-0837-roguebyte-goldhen
 
-index.html #92a4c1fad5eba3995ccad7a1f7d3a235b31e91f2b9eeadfd3e4524c6aeece6c8
+index.html #50a66970cebf6e22f25214f3126e95c4bf363654fc7e540f5bdfc591a99b021b
 jb.html #b20fdb1581e4516d3d2c5e0ef1ded8736ff3e510dd5a297dd297f6f07ad5b132
+sender.html #17a630c44756f01cec03d11a63b5310932a5030d8ae9d6a5f36956ce37722877
 logo_RogueByte.png #a27852701c6ff3e307a793c91e0908886da9ced7e8ac0c0eb7f976386d74ca1b
 jb.js #8fc2ce270c690ed73c88161705cd38f46c8f05c4944d736743dfc1d80f1bc48b
 core.js #a76c52afbc19b05d176be2059048a3c6a4fb61db084d56434cef2b17da00b2b3
@@ -24,3 +25,4 @@ NETWORK:
 FALLBACK:
 index.html index.html
 jb.html jb.html
+sender.html sender.html
