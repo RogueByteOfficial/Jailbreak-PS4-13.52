@@ -50,11 +50,17 @@ function terse(s) {
 const SHOW_LOG = params.get("log") === "1";
 if (SHOW_LOG && document.body) document.body.className = "log";
 function finishUI(ok) {
+  if (typeof window !== "undefined" && window.__agentMark) {
+    try { window.__agentMark(ok ? "DONE" : "FAIL", "finishUI(" + ok + ")"); } catch (e) {}
+  }
   if (SHOW_LOG || !document.body) return;
   document.body.className = ok ? "done" : "fail";
 }
 function mark(tag, detail) {
   const raw = detail;
+  if (typeof window !== "undefined" && window.__agentMark) {
+    try { window.__agentMark(tag, raw); } catch (e) {}
+  }
   detail = terse(detail);
   lines.push(tag + (detail == null || detail === "" ? "" : "  " + detail));
   if (SHOW_LOG && outEl) {
