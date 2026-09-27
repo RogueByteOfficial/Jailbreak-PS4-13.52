@@ -13,7 +13,7 @@
   // ── 1. إعدادات الوكيل (Agent Configuration) ───────────────────────────
   const AGENT_CFG = {
     // عنوان خادم Ollama المحلي (يمكن ضبطه عبر الرابط ?ollama=...)
-    ollamaUrl: (new URLSearchParams(location.search)).get('ollama') || 'http://localhost:11434',
+    ollamaUrl: (new URLSearchParams(location.search)).get('ollama') || 'http://172.22.38.135:11434',
     ollamaModel: 'qwen2.5-coder:7b',
 
     // الحد الأقصى لمحاولات إعادة المحاولة التلقائية
